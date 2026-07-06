@@ -1,0 +1,13 @@
+{
+  "name": "farzan-dev",
+  "owner": { "name": "Farzan" },
+  "description": "Farzan's personal plugin marketplace",
+  "plugins": [
+    {
+      "name": "meta-dev",
+      "source": ".",
+      "description": "Single authority for Claude-config artifacts: modular standards, right-sized lifecycles for skills/agents/hooks/plugins/instruction-files, guard + md-format enforcement hooks, shared judge agents, vendored eval harness, on-demand docs-currency check.",
+      "version": "0.3.0"
+    }
+  ]
+}

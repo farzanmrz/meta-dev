@@ -1,0 +1,12 @@
+{
+  "name": "meta-dev",
+  "description": "Single authority for Claude-config artifacts: modular standards (core + skill/agent/hook/plugin/instruction-files) with right-sized lifecycles for each, two-tier guard + md-format enforcement hooks, shared judge agents, vendored eval harness, and an on-demand docs-currency check (sync-docs).",
+  "version": "0.3.0",
+  "author": {
+    "name": "Farzan"
+  },
+  "metadata": {
+    "distilled-from": "skill-creator@claude-plugins-official, plugin-dev@claude-plugins-official, superpowers@claude-plugins-official, writing-great-skills (mattpocock/skills)"
+  },
+  "displayName": "Meta-Dev"
+}

@@ -1,0 +1,39 @@
+{
+  "description": "meta-dev enforcement: (1) skill-guard v2 — two-tier gate routing skill mutations through meta-dev:skill-creation (hard-deny create/delete/Write/large edits; allow+nudge single small edits), unlocked per session by any meta-dev:* invocation witnessed on PostToolUse; (2) md-format — nudge-only markdown standards check on every .md write, incl. the constitution-size growth-ladder warning.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/skill-guard.sh\" guard",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/skill-guard.sh\" record",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/md-format.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
