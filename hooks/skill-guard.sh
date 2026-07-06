@@ -1,6 +1,6 @@
 #!/bin/bash
-# meta-dev guard v4 — gates routing artifact mutations through the
-# meta-dev:skill-creation router. Covers four surfaces:
+# meta-dev guard v5 — gates routing artifact mutations through the
+# meta-dev:skill-creation router. Covers five surfaces:
 #   skills  (*.claude/skills/*)  — two-tier: hard-deny create/delete/Write/
 #                                  large edits; allow+nudge single small edits
 #   agents  (*.claude/agents/*)  — same two-tier
@@ -11,9 +11,18 @@
 #                                — hard only: instruction files are the project
 #                                  constitution; edits route through the
 #                                  instruction-file lifecycle to stay on-standard
-# Unlock: any meta-dev:* skill invoked this session (PostToolUse witness).
+#   upstream(any skill folder carrying an .upstream marker)
+#                                — hard AND unlock-independent: vendored skills
+#                                  are never edited locally (edits drift from
+#                                  source, vanish on re-sync). Escape: remove the
+#                                  .upstream marker (deliberate un-vendoring).
+# Unlock: any meta-dev:* skill invoked this session (PostToolUse witness) —
+# lifts surfaces 1-4; the upstream surface ignores it by design.
+# Bash matching is operand-adjacency based (cmd_mutates): a path/file is gated
+# only when it is a redirect target or the operand of a create/delete/move verb,
+# never a bare mention (a commit message naming AGENTS.md must not trip).
 # meta-dev's own non-skill internals (standards/ hooks/ agents/ docs/ tools/
-# + the skill-creation harness) are exempt; its skills/ gate like any skill.
+# + the skill-creation harness) are exempt via PLUGIN_ROOT; its skills/ gate.
 set -uo pipefail
 
 MODE="${1:-guard}"
@@ -46,7 +55,8 @@ PLUGIN_ROOT="$(cd "$(dirname "$0")/.." 2>/dev/null && pwd)"
 PNAME="$(basename "$PLUGIN_ROOT")"
 
 # Read-only Bash passes freely; only mutating Bash is gated (discard-redirects
-# stripped before testing for '>').
+# stripped first; a bare '>' counts only as a real redirect with a target, so
+# the '>' inside <email>, '->', '=>' don't misclassify a non-mutating command).
 if [ "$TOOL" = "Bash" ]; then
   CHECK="$(printf '%s' "$CMD" | sed -E 's@[0-9]*>+[[:space:]]*(/dev/null|/dev/stdout|/dev/stderr|&[0-9])@@g')"
   if ! printf '%s' "$CHECK" | grep -qE '(^|[;&|[:space:]$(])(mkdir|touch|rm|rmdir|mv|cp|tee|rsync|ln|truncate|install|dd|chmod|chown)([[:space:]]|$)|sed[[:space:]]+-[^[:space:]]*i|perl[[:space:]]+-[^[:space:]]*i|(^|[^-=<>&|])[0-9]?>>?[[:blank:]]*[^[:space:]&|;<>()]|git[[:space:]]+(checkout|restore|clean|rm|mv)'; then
@@ -74,6 +84,15 @@ small_edit() {  # $1 = nudge text; call only for TOOL=Edit
   fi
 }
 
+# True if CMD actually mutates a path matching ERE $1 — a redirect target, the
+# first non-flag operand of a create/delete/move verb, or a git rm/mv operand —
+# not a bare mention. Reads are already filtered out above for Bash.
+cmd_mutates() {  # $1 = ERE for the path/filename to protect
+  [ -n "$CMD" ] || return 1
+  local p="$1"
+  printf '%s' "$CMD" | grep -qE "(>>?[[:blank:]]*[^[:space:]|;&()]*${p}|(^|[;&|]|[[:space:]])(rm|rmdir|mv|cp|shred|mkdir|touch|install|tee|ln|dd)([[:space:]]+-[^[:space:]]+)*[[:space:]]+[^[:space:]|;&()]*${p}|git[[:space:]]+(rm|mv)([[:space:]]+-[^[:space:]]+)*[[:space:]]+[^[:space:]|;&()]*${p})"
+}
+
 classify_op() {  # sets OP from tool/command shape
   OP="edit"
   if [ "$TOOL" = "Bash" ]; then
@@ -89,13 +108,34 @@ classify_op() {  # sets OP from tool/command shape
   fi
 }
 
+# ---- Surface 5 (runs first): upstream / vendored skills — hard & unlock-independent ----
+# A skill folder carrying an `.upstream` marker is vendored and never edited
+# locally. Deterministic: only marked folders block. The marker file itself may
+# be touched (deliberate un-vendoring); a new skill folder is never blocked here.
+US_HIT=""
+US_CANDS="$FILE"
+[ -n "$CMD" ] && cmd_mutates '\.claude/skills/' && US_CANDS="$US_CANDS $CMD"
+for pth in $(printf '%s\n' "$US_CANDS" | grep -oE '[^[:space:]"'"'"']*\.claude/skills/[^[:space:]"'"'"'/]+' 2>/dev/null); do
+  case "$pth" in "$PLUGIN_ROOT"/*) continue ;; esac
+  us_pfx="${pth%%.claude/skills/*}.claude/skills/"
+  us_nm="${pth#*.claude/skills/}"; us_nm="${us_nm%%/*}"
+  [ -n "$us_nm" ] && [ -f "${us_pfx}${us_nm}/.upstream" ] && US_HIT="${us_pfx}${us_nm}"
+done
+if [ -n "$US_HIT" ]; then
+  case "$TARGET" in
+    *"/.upstream"*) : ;;   # allow touching the marker itself (un-vendor / stamp)
+    *) deny "meta-dev guard: '$US_HIT' is a vendored upstream skill (.upstream marker present). Vendored skills are never edited locally — changes drift from the source and are lost on re-sync. Re-source or update it upstream (meta-dev:skill-creation routes to find-skills). To adopt it as a project-owned skill, delete its .upstream marker first (a deliberate un-vendoring); to build on it, author a new skill instead." ;;
+  esac
+fi
+
 # ---- Surface 1: skills ----
 GATE_SKILLS=0
-case "$TARGET" in
+case "$FILE" in
   *".claude/skills/$PNAME/skills/"*) GATE_SKILLS=1 ;;
   *".claude/skills/$PNAME/"*)        : ;;             # meta-dev internals exempt
   *.claude/skills/*)                 GATE_SKILLS=1 ;;
 esac
+[ "$GATE_SKILLS" = 0 ] && cmd_mutates '\.claude/skills/' && GATE_SKILLS=1
 if [ "$GATE_SKILLS" = 1 ] && [ ! -f "$(marker)" ]; then
   [ "$TOOL" = "Edit" ] && small_edit "meta-dev guard: small edit to a skill allowed without the lifecycle. If this changed behavior (steps, rules, triggers), run meta-dev:review-skill afterward or route substantive work through meta-dev:skill-creation. Standards: ~/.claude/skills/meta-dev/standards/."
   classify_op
@@ -108,19 +148,18 @@ if [ "$GATE_SKILLS" = 1 ] && [ ! -f "$(marker)" ]; then
 fi
 
 # ---- Surface 2: agents ----
-if [ ! -f "$(marker)" ]; then
-  case "$TARGET" in
-    *.claude/agents/*)
-      [ "$TOOL" = "Edit" ] && small_edit "meta-dev guard: small edit to an agent allowed without the lifecycle. If this changed delegation behavior, tools, or the return contract, run meta-dev:review-agent afterward or route substantive work through meta-dev:skill-creation. Standards: ~/.claude/skills/meta-dev/standards/agent.md."
-      classify_op
-      case "$OP" in
-        delete) H="This looks like DELETING an agent — the router dispatches retire-agent." ;;
-        create) H="This looks like CREATING an agent — the router dispatches create-agent." ;;
-        *)      H="This looks like a substantive agent EDIT — the router dispatches update-agent or improve-agent." ;;
-      esac
-      deny "meta-dev guard: this operation touches an agent under .claude/agents/. Invoke 'meta-dev:skill-creation' FIRST via the Skill tool, then retry — it will be allowed for the rest of the session. $H"
-      ;;
+GATE_AGENTS=0
+case "$FILE" in *.claude/agents/*) GATE_AGENTS=1 ;; esac
+[ "$GATE_AGENTS" = 0 ] && cmd_mutates '\.claude/agents/' && GATE_AGENTS=1
+if [ "$GATE_AGENTS" = 1 ] && [ ! -f "$(marker)" ]; then
+  [ "$TOOL" = "Edit" ] && small_edit "meta-dev guard: small edit to an agent allowed without the lifecycle. If this changed delegation behavior, tools, or the return contract, run meta-dev:review-agent afterward or route substantive work through meta-dev:skill-creation. Standards: ~/.claude/skills/meta-dev/standards/agent.md."
+  classify_op
+  case "$OP" in
+    delete) H="This looks like DELETING an agent — the router dispatches retire-agent." ;;
+    create) H="This looks like CREATING an agent — the router dispatches create-agent." ;;
+    *)      H="This looks like a substantive agent EDIT — the router dispatches update-agent or improve-agent." ;;
   esac
+  deny "meta-dev guard: this operation touches an agent under .claude/agents/. Invoke 'meta-dev:skill-creation' FIRST via the Skill tool, then retry — it will be allowed for the rest of the session. $H"
 fi
 
 # ---- Surface 3: hook configuration (hard tier only) ----
@@ -130,10 +169,11 @@ if [ ! -f "$(marker)" ]; then
   case "$FILE" in "$PLUGIN_ROOT"/*) BASE="" ;; esac   # meta-dev's own hooks exempt
   [ "$BASE" = "hooks.json" ] && HOOKISH=1
   if printf '%s' "$BASE" | grep -qE '^settings(\.local)?\.json$'; then
-    printf '%s %s' "$CONTENT" "$CMD" | grep -qE '"hooks"|PreToolUse|PostToolUse|UserPromptSubmit|SessionStart|SessionEnd|SubagentStop|PreCompact' && HOOKISH=1
+    printf '%s' "$CONTENT" | grep -qE '"hooks"|PreToolUse|PostToolUse|UserPromptSubmit|SessionStart|SessionEnd|SubagentStop|PreCompact' && HOOKISH=1
   fi
-  if [ -n "$CMD" ] && printf '%s' "$CMD" | grep -qE 'hooks\.json|settings(\.local)?\.json.*(hook|PreToolUse|PostToolUse)' && ! printf '%s' "$CMD" | grep -q "$PLUGIN_ROOT"; then
-    HOOKISH=1
+  if [ -n "$CMD" ] && ! printf '%s' "$CMD" | grep -q "$PLUGIN_ROOT"; then
+    cmd_mutates 'hooks\.json' && HOOKISH=1
+    cmd_mutates 'settings(\.local)?\.json' && printf '%s' "$CMD" | grep -qE 'hook|PreToolUse|PostToolUse' && HOOKISH=1
   fi
   [ "$HOOKISH" = 1 ] && deny "meta-dev guard: this operation modifies hook configuration (hooks.json or a settings.json hooks block). Hook config is prevention machinery, so no small-edit tier applies. Invoke 'meta-dev:skill-creation' FIRST via the Skill tool — it dispatches create-hook (authoring) or review-hook (auditing) — then retry; allowed for the rest of the session."
 fi
@@ -142,19 +182,14 @@ fi
 # CLAUDE.md / AGENTS.md are the project constitution; every mutation routes
 # through the instruction-file lifecycle so format and commitments stay on
 # standard. Hard tier only — no small-edit escape (enforce, not nudge).
-# Basename match catches Write/Edit at any location (root, .claude/, nested).
-# For Bash, match ONLY when the constitution is a redirect target or the operand
-# of a destructive verb (rm/mv/cp/shred/git rm) — never a bare mention, so a
-# commit message or echo that names AGENTS.md does not trip. meta-dev's own tree
-# is exempt via PLUGIN_ROOT.
+# Basename match catches Write/Edit at any location (root, .claude/, nested);
+# Bash is gated by cmd_mutates so a mention in a commit message won't trip.
 if [ ! -f "$(marker)" ]; then
   INSTR=0
   IBASE="$(basename "$FILE")"
   case "$FILE" in "$PLUGIN_ROOT"/*) IBASE="" ;; esac
   case "$IBASE" in CLAUDE.md|AGENTS.md) INSTR=1 ;; esac
-  if [ -n "$CMD" ] \
-     && printf '%s' "$CMD" | grep -qE '(>>?[[:blank:]]*[^[:space:]|;&()]*(CLAUDE|AGENTS)\.md|(^|[;&|[:space:]$(])(rm|rmdir|mv|cp|shred)([[:space:]]+-[^[:space:]]+)*[[:space:]]+[^[:space:]|;&()]*(CLAUDE|AGENTS)\.md|git[[:space:]]+rm([[:space:]]+-[^[:space:]]+)*[[:space:]]+[^[:space:]|;&()]*(CLAUDE|AGENTS)\.md)' \
-     && ! printf '%s' "$CMD" | grep -q "$PLUGIN_ROOT"; then
+  if cmd_mutates '(CLAUDE|AGENTS)\.md' && ! printf '%s' "$CMD" | grep -q "$PLUGIN_ROOT"; then
     INSTR=1
   fi
   [ "$INSTR" = 1 ] && deny "meta-dev guard: this operation edits a project instruction file (CLAUDE.md / AGENTS.md). These are the project constitution — edits route through the instruction-file lifecycle so format and commitments stay on-standard, and no small-edit tier applies. Invoke 'meta-dev:skill-creation' FIRST via the Skill tool — it dispatches setup-instructions (bootstrap), update-instructions (content or growth-ladder graduation), or improve-instructions (format/declutter, no fact change) — then retry; allowed for the rest of the session."
