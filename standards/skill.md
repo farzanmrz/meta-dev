@@ -32,6 +32,15 @@ Adds to `core.md`; never repeats it. A skill = a folder with `SKILL.md` (frontma
 - **User-invoked** (`disable-model-invocation: true`): zero context load; the human is the index. Choose for destructive, rare, or manual-only work.
 - Split a skill only when the cut pays for its load: by invocation (a distinct leading word deserves its own trigger) or by sequence (visible later steps tempt premature completion).
 
+## Provenance — upstream vs project-owned
+
+A skill is either **project-owned** (authored in this repo, yours to change) or **upstream/vendored** (installed from a registry or another repo — `npx <name>`, a shadcn-style registry, a marketplace). A vendored skill is documentation-of-record for someone else's package: editing it locally drifts from the source and is silently lost on the next re-sync.
+
+- **Never edit a vendored skill.** update/improve/restructure-skill check provenance as their first step and refuse it; fixes belong upstream (re-source via `find-skills`, or file the change with the source project).
+- **Mark it once.** A vendored skill folder carries an `.upstream` marker file (its body may name the source + install command for re-sync). The guard hook hard-denies every mutation under a marked folder — even inside the lifecycle — so an accidental local fork can't happen. Stamping the marker is the lifecycle's job the first time it identifies a skill as vendored.
+- **Detecting vendored provenance** (lifecycle step 1): an existing `.upstream` marker; the skill is installable via `find-skills` / a known registry; or SKILL.md carries upstream attribution (a source repo/package link, marketing-style install docs, foreign issue-tracker links) rather than project-specific instructions.
+- **To adopt one as project-owned**, remove its `.upstream` marker deliberately (un-vendoring) — then it lives under the normal lifecycle. To build on it, author a NEW skill rather than editing the vendored one.
+
 ## Interplay with agents
 
 A forking skill and its `agent:` target are one mechanism from two doors (the inverse of an agent preloading skills). When authoring either, check the seam: the fork skill has an actionable task; any preloaded skill is not `disable-model-invocation`; the agent's tool list can actually execute the skill's process. Review skills and their paired agents together.

@@ -8,6 +8,12 @@ model: sonnet
 
 Change the shape, preserve the behavior. Restructuring spends one of two currencies — every new model-invoked skill adds permanent context load; every new user-invoked skill adds cognitive load on the human — so a cut must earn its cost. The economics live in `${CLAUDE_SKILL_DIR}/../../standards/skill.md` (invocation economics section); read it and `core.md` before planning.
 
+## Step 0 — Provenance gate
+
+Before anything, settle whether the targets are project-owned or upstream/vendored (`skill.md`'s Provenance section). Any folder carrying an `.upstream` marker, installable via `find-skills` / a known registry, or whose SKILL.md reads as upstream package docs rather than project instructions is **out of bounds — do not split, merge, move, or rename it**. Report it as vendored, stamp an `.upstream` marker if one is missing, and exclude it from the restructure plan. Only project-owned skills proceed.
+
+Completion criterion: every target confirmed project-owned, or excluded as vendored with the marker stamped.
+
 ## Step 1 — Map the current shape
 
 1. Inventory every skill involved: line counts (`wc -l`), description lengths, bundled-file tree, and trigger descriptions side by side.

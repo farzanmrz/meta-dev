@@ -54,6 +54,7 @@ The lifecycle operations, each right-sized to how often that artifact actually c
 **Instruction-file lifecycle**
 - **[setup-instructions](skills/setup-instructions/SKILL.md)** — bootstrap a repo's `AGENTS.md`/`CLAUDE.md`/references at rung 1 of the growth ladder.
 - **[update-instructions](skills/update-instructions/SKILL.md)** — change instruction-file content and execute growth-ladder graduations under approval.
+- **[review-instructions](skills/review-instructions/SKILL.md)** — read-only audit that verifies every documented claim against the actual codebase (stale versions, moved routes, dead commands), plus standards and cross-file consistency; routes each fix.
 - **[improve-instructions](skills/improve-instructions/SKILL.md)** — declutter and reformat instruction files without changing what they commit to; hands-free.
 
 **Currency**

@@ -8,6 +8,12 @@ model: sonnet
 
 Change what a skill does without silently breaking what it already did. The two failure modes this pipeline exists to prevent: regressions in preserved behavior, and updates that quietly turn into rewrites. Read `${CLAUDE_SKILL_DIR}/../../standards/core.md` and `${CLAUDE_SKILL_DIR}/../../standards/skill.md` before editing.
 
+## Step 0 — Provenance gate
+
+Before anything, settle whether the target is project-owned or upstream/vendored (`skill.md`'s Provenance section). If the folder carries an `.upstream` marker, the skill is installable via `find-skills` / a known registry, or its SKILL.md reads as upstream package docs rather than project instructions: **stop — do not edit**. Report it as vendored, stamp an `.upstream` marker if one is missing (naming the source + re-sync command), and route the user to re-source or fix it upstream. Only a project-owned skill proceeds.
+
+Completion criterion: target confirmed project-owned, or handed back as vendored with the marker stamped.
+
 ## Step 1 — Capture the current contract
 
 1. Read the skill completely: SKILL.md and every bundled file.

@@ -29,7 +29,8 @@ Match the request against the signals. Multiple rows can match; collect all that
 | Audit hooks / why didn't a hook fire or block — no edits | `meta-dev:review-hook` |
 | Bootstrap a repo's CLAUDE.md/AGENTS.md/references | `meta-dev:setup-instructions` |
 | Change instruction-file content or graduate an area (growth ladder) | `meta-dev:update-instructions` |
-| Debloat/format/audit instruction files, no fact changes | `meta-dev:improve-instructions` |
+| Audit instruction files / verify documented claims against the codebase / are the docs correct — no edits | `meta-dev:review-instructions` |
+| Debloat/format instruction files, no fact changes | `meta-dev:improve-instructions` |
 | Scaffold a new plugin / package components for install | `meta-dev:scaffold-plugin` |
 | Validate a plugin or marketplace / why doesn't it load — no edits | `meta-dev:validate-plugin` |
 

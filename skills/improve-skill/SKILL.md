@@ -12,6 +12,12 @@ Same behavior, better skill — by one named metric at a time. The contract that
 
 Improve runs hands-free, end to end. Never consult the user mid-pass — behavior is preserved by contract, so there is nothing for them to decide: choose the metric, execute, verify, then report the evidence and every choice made. (Users weigh in on operations that change behavior or shape — update and restructure — never on improve.)
 
+## Step 0 — Provenance gate
+
+Before anything, settle whether the target is project-owned or upstream/vendored (`skill.md`'s Provenance section). If the folder carries an `.upstream` marker, the skill is installable via `find-skills` / a known registry, or its SKILL.md reads as upstream package docs rather than project instructions: **stop — do not edit**. Report it as vendored, stamp an `.upstream` marker if one is missing (naming the source + re-sync command), and route the user to re-source or fix it upstream. Only a project-owned skill proceeds.
+
+Completion criterion: target confirmed project-owned, or handed back as vendored with the marker stamped.
+
 ## Step 1 — Pick the metric
 
 Determine which single criterion this pass targets, from the user's complaint and a quick scan of the skill:
