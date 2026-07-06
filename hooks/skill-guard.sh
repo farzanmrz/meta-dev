@@ -49,7 +49,7 @@ PNAME="$(basename "$PLUGIN_ROOT")"
 # stripped before testing for '>').
 if [ "$TOOL" = "Bash" ]; then
   CHECK="$(printf '%s' "$CMD" | sed -E 's@[0-9]*>+[[:space:]]*(/dev/null|/dev/stdout|/dev/stderr|&[0-9])@@g')"
-  if ! printf '%s' "$CHECK" | grep -qE '(^|[;&|[:space:]$(])(mkdir|touch|rm|rmdir|mv|cp|tee|rsync|ln|truncate|install|dd|chmod|chown)([[:space:]]|$)|sed[[:space:]]+-[^[:space:]]*i|perl[[:space:]]+-[^[:space:]]*i|>|git[[:space:]]+(checkout|restore|clean|rm|mv)'; then
+  if ! printf '%s' "$CHECK" | grep -qE '(^|[;&|[:space:]$(])(mkdir|touch|rm|rmdir|mv|cp|tee|rsync|ln|truncate|install|dd|chmod|chown)([[:space:]]|$)|sed[[:space:]]+-[^[:space:]]*i|perl[[:space:]]+-[^[:space:]]*i|(^|[^-=<>&|])[0-9]?>>?[[:blank:]]*[^[:space:]&|;<>()]|git[[:space:]]+(checkout|restore|clean|rm|mv)'; then
     exit 0
   fi
 fi
@@ -142,16 +142,18 @@ fi
 # CLAUDE.md / AGENTS.md are the project constitution; every mutation routes
 # through the instruction-file lifecycle so format and commitments stay on
 # standard. Hard tier only — no small-edit escape (enforce, not nudge).
-# Basename match catches any location (root, .claude/, nested); the CMD grep
-# catches Bash mutations (word-boundary anchored so MYCLAUDE.md won't trip it);
-# meta-dev's own tree is exempt via PLUGIN_ROOT.
+# Basename match catches Write/Edit at any location (root, .claude/, nested).
+# For Bash, match ONLY when the constitution is a redirect target or the operand
+# of a destructive verb (rm/mv/cp/shred/git rm) — never a bare mention, so a
+# commit message or echo that names AGENTS.md does not trip. meta-dev's own tree
+# is exempt via PLUGIN_ROOT.
 if [ ! -f "$(marker)" ]; then
   INSTR=0
   IBASE="$(basename "$FILE")"
   case "$FILE" in "$PLUGIN_ROOT"/*) IBASE="" ;; esac
   case "$IBASE" in CLAUDE.md|AGENTS.md) INSTR=1 ;; esac
   if [ -n "$CMD" ] \
-     && printf '%s' "$CMD" | grep -qE '(^|[^[:alnum:]._-])(CLAUDE|AGENTS)\.md([^[:alnum:]]|$)' \
+     && printf '%s' "$CMD" | grep -qE '(>>?[[:blank:]]*[^[:space:]|;&()]*(CLAUDE|AGENTS)\.md|(^|[;&|[:space:]$(])(rm|rmdir|mv|cp|shred)([[:space:]]+-[^[:space:]]+)*[[:space:]]+[^[:space:]|;&()]*(CLAUDE|AGENTS)\.md|git[[:space:]]+rm([[:space:]]+-[^[:space:]]+)*[[:space:]]+[^[:space:]|;&()]*(CLAUDE|AGENTS)\.md)' \
      && ! printf '%s' "$CMD" | grep -q "$PLUGIN_ROOT"; then
     INSTR=1
   fi
