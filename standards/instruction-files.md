@@ -8,6 +8,7 @@ Adds to `core.md`. Governs a project's always-loaded and path-loaded instruction
 - `.claude/references/` holds pull-only depth — not a recognized directory, loads only when something explicitly points and reads. That is its job; don't expect auto-load.
 - No `.claude/rules/` by default. Rules return only as a rung-2 graduation (below).
 - Prevention never rides on any of these files — hooks own it (core: Enforcement doctrine).
+- Mutations are hard-gated: the guard hook denies any direct edit of `CLAUDE.md`/`AGENTS.md` (Write/Edit or Bash) until a `meta-dev:*` skill unlocks the session, forcing every change through this lifecycle (`setup`/`update`/`improve-instructions`). No small-edit tier — instruction files are the constitution, so format and commitments never drift in via a one-liner.
 
 ## Loading mechanics (verified; design against these, not folklore)
 

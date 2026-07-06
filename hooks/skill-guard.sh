@@ -1,12 +1,16 @@
 #!/bin/bash
-# meta-dev guard v3 — two-tier gates routing artifact mutations through the
-# meta-dev:skill-creation router. Covers three surfaces:
+# meta-dev guard v4 — gates routing artifact mutations through the
+# meta-dev:skill-creation router. Covers four surfaces:
 #   skills  (*.claude/skills/*)  — two-tier: hard-deny create/delete/Write/
 #                                  large edits; allow+nudge single small edits
 #   agents  (*.claude/agents/*)  — same two-tier
 #   hooks   (hooks.json anywhere; settings*.json edits touching hook config)
 #                                — hard only: hook config is prevention
 #                                  machinery, a wrong edit disables guarantees
+#   instr   (CLAUDE.md / AGENTS.md anywhere)
+#                                — hard only: instruction files are the project
+#                                  constitution; edits route through the
+#                                  instruction-file lifecycle to stay on-standard
 # Unlock: any meta-dev:* skill invoked this session (PostToolUse witness).
 # meta-dev's own non-skill internals (standards/ hooks/ agents/ docs/ tools/
 # + the skill-creation harness) are exempt; its skills/ gate like any skill.
@@ -132,6 +136,26 @@ if [ ! -f "$(marker)" ]; then
     HOOKISH=1
   fi
   [ "$HOOKISH" = 1 ] && deny "meta-dev guard: this operation modifies hook configuration (hooks.json or a settings.json hooks block). Hook config is prevention machinery, so no small-edit tier applies. Invoke 'meta-dev:skill-creation' FIRST via the Skill tool — it dispatches create-hook (authoring) or review-hook (auditing) — then retry; allowed for the rest of the session."
+fi
+
+# ---- Surface 4: instruction files (hard tier) ----
+# CLAUDE.md / AGENTS.md are the project constitution; every mutation routes
+# through the instruction-file lifecycle so format and commitments stay on
+# standard. Hard tier only — no small-edit escape (enforce, not nudge).
+# Basename match catches any location (root, .claude/, nested); the CMD grep
+# catches Bash mutations (word-boundary anchored so MYCLAUDE.md won't trip it);
+# meta-dev's own tree is exempt via PLUGIN_ROOT.
+if [ ! -f "$(marker)" ]; then
+  INSTR=0
+  IBASE="$(basename "$FILE")"
+  case "$FILE" in "$PLUGIN_ROOT"/*) IBASE="" ;; esac
+  case "$IBASE" in CLAUDE.md|AGENTS.md) INSTR=1 ;; esac
+  if [ -n "$CMD" ] \
+     && printf '%s' "$CMD" | grep -qE '(^|[^[:alnum:]._-])(CLAUDE|AGENTS)\.md([^[:alnum:]]|$)' \
+     && ! printf '%s' "$CMD" | grep -q "$PLUGIN_ROOT"; then
+    INSTR=1
+  fi
+  [ "$INSTR" = 1 ] && deny "meta-dev guard: this operation edits a project instruction file (CLAUDE.md / AGENTS.md). These are the project constitution — edits route through the instruction-file lifecycle so format and commitments stay on-standard, and no small-edit tier applies. Invoke 'meta-dev:skill-creation' FIRST via the Skill tool — it dispatches setup-instructions (bootstrap), update-instructions (content or growth-ladder graduation), or improve-instructions (format/declutter, no fact change) — then retry; allowed for the rest of the session."
 fi
 
 exit 0

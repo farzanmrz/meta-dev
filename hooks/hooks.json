@@ -1,5 +1,5 @@
 {
-  "description": "meta-dev enforcement: (1) skill-guard v2 — two-tier gate routing skill mutations through meta-dev:skill-creation (hard-deny create/delete/Write/large edits; allow+nudge single small edits), unlocked per session by any meta-dev:* invocation witnessed on PostToolUse; (2) md-format — nudge-only markdown standards check on every .md write, incl. the constitution-size growth-ladder warning.",
+  "description": "meta-dev enforcement: (1) skill-guard v4— gate routing artifact mutations through meta-dev:skill-creation across four surfaces (skills + agents: two-tier hard-deny/small-edit-nudge; hook config + instruction files CLAUDE.md/AGENTS.md: hard-deny only), unlocked per session by any meta-dev:* invocation witnessed on PostToolUse; (2) md-format — nudge-only markdown standards check on every .md write, incl. the constitution-size growth-ladder warning.",
   "hooks": {
     "PreToolUse": [
       {
