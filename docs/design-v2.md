@@ -142,3 +142,7 @@ Extend the existing `skill-creation` router table to all artifact classes (instr
 ## Phase A — SHIPPED 2026-07-05
 
 standards/ (core + skill + agent + hook + plugin + instruction-files) · guard v2 two-tier · md-format nudge hook · constitution-size warning (inside md-format) · all lifecycle skills + reviewer repointed to the modular standards · model policy v2 wording throughout · monolithic standards.md retired. Requires `/reload-plugins` for the hook changes.
+
+## Phases B–E + distribution — SHIPPED 2026-07-05
+
+13 new lifecycle skills (instruction-files 3 · agents 5 · hooks 2 · plugins 2 · sync-docs) + validate_agent.py, authored by parallel fleet, adversarially audited (17 findings: 16 fixed, 1 declined to register), all 20 skills + 5 agents validate. Guard v3 (skills/agents/hook-config, 17/17 matrix). Reviewer made artifact-aware. Converted to installed plugin: repo ~/meta-dev, marketplace farzan-dev, `meta-dev@farzan-dev` v0.3.0 (user scope). Retired: plugin-dev, claude-md-management (skill-creator already off). Dev loop: edit repo → `claude plugin marketplace update farzan-dev` → `claude plugin update meta-dev`.
