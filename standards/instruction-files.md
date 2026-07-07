@@ -102,5 +102,5 @@ A `.claude/rules/<area>.md`:
 
 - **Frontmatter** — `paths:` globs scoping the area to where its tech actually lives (the trigger). Scope precisely: too broad fires on unrelated files, too narrow misses the area.
 - **Skills first** — the area's apply-now skills (with `when`), then any *surfaced* future-trigger skills noted as "when X, add Y." This is the enforcement half — invoke-before-working guidance for the area.
-- **Progressive info** — the non-code-recoverable keepers only: guards, gotchas, external constraints. No code-map listing, no restating a source file's own comments.
+- **Progressive info** — the non-code-recoverable keepers only: guards, gotchas, external constraints. **Bullet-first and distilled**: one line of mechanism + one line of consequence per keeper — never a narrated paragraph or a transcribed reasoning trace. No code-map listing, no restating a source file's own comments, no config-value quotes or version numbers (all code-recoverable — they fail the promotion test).
 - One area per file; every skill and fact single-sourced across all rules and `AGENTS.md`.

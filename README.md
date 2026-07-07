@@ -63,8 +63,9 @@ The lifecycle operations, each right-sized to how often that artifact actually c
 
 ## Agents
 
-Shared judges the lifecycles dispatch — read-mostly, single-purpose.
+Shared judges and workers the lifecycles dispatch — read-mostly, single-purpose.
 
+- **[grounder](agents/grounder.md)** — read-only per-area grounding worker; `revise-agents-md` and `setup-instructions` dispatch one per path-area in parallel to ground the code and draft each rule cheaply, instead of reading serially on the caller's model.
 - **[reviewer](agents/reviewer.md)** — read-only scored audit of a skill, agent, or instruction-file artifact against the standards, with routed fixes.
 - **[grader](agents/grader.md)** — grades one eval run's assertions against the transcript and outputs, with cited evidence.
 - **[comparator](agents/comparator.md)** — blind A/B judge of two outputs without knowing which produced which.

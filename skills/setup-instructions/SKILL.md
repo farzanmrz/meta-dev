@@ -24,7 +24,9 @@ Following `instruction-files.md`, draft:
 
 - `AGENTS.md` — the **surface**: identity, stack, commands, environment, a thin code map (names areas, does not point at rules), and always-on working rules. No per-area detail; no commentary about how rules or skills load (the harness owns that); no skill whose description the harness already matches.
 - `CLAUDE.md` — exactly `@AGENTS.md`.
-- `.claude/rules/<area>.md` — one per path-area: a `paths:` filter, the area's skills (derive the skill×path mapping per `instruction-files.md` — **apply** now, **surface** with a trigger condition, **drop** the inapplicable), and the non-code-recoverable info keepers (promotion test). A fresh repo's rules may be thin; that is fine.
+- `.claude/rules/<area>.md` — one per path-area: a `paths:` filter, the area's skills (derive the skill×path mapping per `instruction-files.md` — **apply** now, **surface** with a trigger condition, **drop** the inapplicable), and the non-code-recoverable info keepers (promotion test, bullet-first). A fresh repo's rules may be thin; that is fine.
+
+For a repo that already has real code across several areas, dispatch one `meta-dev:grounder` per area in parallel (as `revise-agents-md` does) so each area is grounded and drafted concurrently on a cheap model rather than read serially here; a near-empty fresh repo needs no fan-out.
 
 No nested `CLAUDE.md` — a fresh repo has no deep, self-contained subtree that warrants its own scoped constitution yet. Completion criterion: draft `AGENTS.md` + `CLAUDE.md` + the rule set exist in the workspace.
 
