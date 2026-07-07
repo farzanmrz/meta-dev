@@ -47,7 +47,9 @@ This step is mandatory even for one-line additions — it is how the standards a
 
 ## Step 6 — Verify: new behavior AND old
 
-Behavioral change means tier 3 of `${CLAUDE_SKILL_DIR}/../skill-creation/references/testing-ladder.md` — run the eval pipeline per `${CLAUDE_SKILL_DIR}/../skill-creation/references/eval-pipeline.md` with baseline = **the snapshot** (`old_skill/`), and evals of BOTH kinds:
+First split by *how* the behavior is produced. If the change is **deterministic** — a script, decoder, or logic whose output is fixed given its input, not model-driven — the eval pipeline is the wrong instrument: verify **functionally** by running the skill's code against real fixture data, asserting the corrected output and confirming preserved behaviors still hold. That real-data run, not a trigger eval, is the meaningful test for a tool like a session decoder; skip the pipeline below.
+
+Otherwise the behavior is **probabilistic** (model-driven), which means tier 3 of `${CLAUDE_SKILL_DIR}/../skill-creation/references/testing-ladder.md` — run the eval pipeline per `${CLAUDE_SKILL_DIR}/../skill-creation/references/eval-pipeline.md` with baseline = **the snapshot** (`old_skill/`), and evals of BOTH kinds:
 
 - **New-behavior evals**: 1–2 prompts exercising the added capability. Expected: new version passes, snapshot fails — proof the update does something.
 - **Regression evals**: 1–2 prompts from the regression list. Expected: both versions pass — proof nothing broke.
@@ -58,7 +60,7 @@ Completion criterion: new-behavior evals pass on the new version; every regressi
 
 ## Step 7 — Finish
 
-1. Bump `metadata.version` in frontmatter; commit if the skill is git-tracked (the diff message is the changelog).
+1. If the skill carries a `metadata.version`, bump it — but don't add the field to a skill that doesn't already use it; for a git-tracked skill the commit message is the changelog. Commit if git-tracked.
 2. Append the change and its evidence to the workspace log.
 3. Run the mandatory workspace cleanup (eval-pipeline.md §9): archive the snapshot if the skill isn't git-tracked, keep the log, and `rm -rf` the workspace.
 4. If the update grew the skill near its budgets, recommend restructure-skill; if the description no longer covers the new triggers, recommend improve-skill's description branch.

@@ -50,7 +50,7 @@ The change decides the tier; when honestly unsure, take the higher tier.
 
 1. **Cosmetic/structural** — static review only: validator script + reviewer agent.
 2. **Wording of behavior-shaping text** — micro-test: 5+ fresh-context reps per variant vs a no-guidance control; read every flagged match manually; rep-variance means the wording isn't binding.
-3. **New behavior / changed steps / changed triggers** — eval run with baseline + grading + benchmark delta.
+3. **New behavior / changed steps / changed triggers** — eval run with baseline + grading + benchmark delta *for probabilistic (model-driven) behavior*. **Deterministic** behavior — a script, decoder, or tool whose output is fixed given its input — verifies functionally instead: run it against real fixture data and assert the output. No eval pipeline (trigger evals test model behavior, which a deterministic tool doesn't have).
 4. **Discipline rules** (things an agent will want to break under pressure) — pressure scenarios, rationalizations captured verbatim, each closed with a targeted negation.
 
 ## Autonomy split (lifecycle operations)
@@ -58,7 +58,7 @@ The change decides the tier; when honestly unsure, take the higher tier.
 - **improve** — hands-free end to end; never consults; reports evidence afterward.
 - **update** — consults once, to confirm the requirements diff; skipped when the request already states it.
 - **create** — asks during intake only.
-- **restructure / setup / graduations** — pauses for plan approval; shape changes and many-files-at-once writes are user decisions.
+- **restructure / setup / rule re-scopes** — pauses for plan approval; shape changes and many-files-at-once writes are user decisions.
 - **retire** — pauses only on unresolved cross-reference blockers.
 
 ## Enforcement doctrine

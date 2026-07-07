@@ -1,5 +1,5 @@
 #!/bin/bash
-# meta-dev guard v5 — gates routing artifact mutations through the
+# meta-dev guard v6 — gates routing artifact mutations through the
 # meta-dev:skill-creation router. Covers five surfaces:
 #   skills  (*.claude/skills/*)  — two-tier: hard-deny create/delete/Write/
 #                                  large edits; allow+nudge single small edits
@@ -8,16 +8,18 @@
 #                                — hard only: hook config is prevention
 #                                  machinery, a wrong edit disables guarantees
 #   instr   (CLAUDE.md / AGENTS.md anywhere)
-#                                — hard only: instruction files are the project
-#                                  constitution; edits route through the
-#                                  instruction-file lifecycle to stay on-standard
+#                                — soft nudge: a reminder that the lifecycle and
+#                                  /meta-dev:revise-agents-md exist, then the edit
+#                                  is allowed. A constitution is living docs, not
+#                                  prevention machinery; keep it low-friction.
 #   upstream(any skill folder carrying an .upstream marker)
 #                                — hard AND unlock-independent: vendored skills
 #                                  are never edited locally (edits drift from
 #                                  source, vanish on re-sync). Escape: remove the
 #                                  .upstream marker (deliberate un-vendoring).
 # Unlock: any meta-dev:* skill invoked this session (PostToolUse witness) —
-# lifts surfaces 1-4; the upstream surface ignores it by design.
+# lifts surfaces 1-3 and silences surface 4's nudge; the upstream surface
+# ignores it by design.
 # Bash matching is operand-adjacency based (cmd_mutates): a path/file is gated
 # only when it is a redirect target or the operand of a create/delete/move verb,
 # never a bare mention (a commit message naming AGENTS.md must not trip).
@@ -178,12 +180,14 @@ if [ ! -f "$(marker)" ]; then
   [ "$HOOKISH" = 1 ] && deny "meta-dev guard: this operation modifies hook configuration (hooks.json or a settings.json hooks block). Hook config is prevention machinery, so no small-edit tier applies. Invoke 'meta-dev:skill-creation' FIRST via the Skill tool — it dispatches create-hook (authoring) or review-hook (auditing) — then retry; allowed for the rest of the session."
 fi
 
-# ---- Surface 4: instruction files (hard tier) ----
-# CLAUDE.md / AGENTS.md are the project constitution; every mutation routes
-# through the instruction-file lifecycle so format and commitments stay on
-# standard. Hard tier only — no small-edit escape (enforce, not nudge).
-# Basename match catches Write/Edit at any location (root, .claude/, nested);
-# Bash is gated by cmd_mutates so a mention in a commit message won't trip.
+# ---- Surface 4: instruction files (soft nudge — never blocks) ----
+# CLAUDE.md / AGENTS.md are living documentation, not prevention machinery, so a
+# hard gate here made keeping them current a chore. On a direct edit we only
+# remind that the lifecycle (and the full-surface /meta-dev:revise-agents-md
+# tune-up) exists, then let the edit through — no deny, no permission override
+# (systemMessage only, so normal permission flow still applies). Silent once any
+# meta-dev:* skill has unlocked the session. Basename match catches Write/Edit
+# anywhere; Bash gated by cmd_mutates so a commit-message mention won't trip.
 if [ ! -f "$(marker)" ]; then
   INSTR=0
   IBASE="$(basename "$FILE")"
@@ -192,7 +196,10 @@ if [ ! -f "$(marker)" ]; then
   if cmd_mutates '(CLAUDE|AGENTS)\.md' && ! printf '%s' "$CMD" | grep -q "$PLUGIN_ROOT"; then
     INSTR=1
   fi
-  [ "$INSTR" = 1 ] && deny "meta-dev guard: this operation edits a project instruction file (CLAUDE.md / AGENTS.md). These are the project constitution — edits route through the instruction-file lifecycle so format and commitments stay on-standard, and no small-edit tier applies. Invoke 'meta-dev:skill-creation' FIRST via the Skill tool — it dispatches setup-instructions (bootstrap), update-instructions (content or growth-ladder graduation), or improve-instructions (format/declutter, no fact change) — then retry; allowed for the rest of the session."
+  if [ "$INSTR" = 1 ]; then
+    jq -n --arg m "meta-dev: editing a project instruction file (CLAUDE.md / AGENTS.md) — allowed; this is a nudge, not a block. For a full correctness + de-dup + format tune-up of the whole context surface against the codebase, run /meta-dev:revise-agents-md. For one scoped change, meta-dev:skill-creation routes to update- or improve-instructions." \
+      '{systemMessage:$m}'
+  fi
 fi
 
 exit 0

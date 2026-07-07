@@ -27,8 +27,8 @@ Match the request against the signals. Multiple rows can match; collect all that
 | Remove an agent | `meta-dev:retire-agent` |
 | New hook / automate-or-block something on an event | `meta-dev:create-hook` |
 | Audit hooks / why didn't a hook fire or block — no edits | `meta-dev:review-hook` |
-| Bootstrap a repo's CLAUDE.md/AGENTS.md/references | `meta-dev:setup-instructions` |
-| Change instruction-file content or graduate an area (growth ladder) | `meta-dev:update-instructions` |
+| Bootstrap a repo's AGENTS.md/CLAUDE.md + path-scoped `.claude/rules/` | `meta-dev:setup-instructions` |
+| Change instruction-file content or re-scope an area's rule | `meta-dev:update-instructions` |
 | Audit instruction files / verify documented claims against the codebase / are the docs correct — no edits | `meta-dev:review-instructions` |
 | Debloat/format instruction files, no fact changes | `meta-dev:improve-instructions` |
 | Scaffold a new plugin / package components for install | `meta-dev:scaffold-plugin` |
@@ -36,9 +36,11 @@ Match the request against the signals. Multiple rows can match; collect all that
 
 (Docs currency is user-invoked only: `/meta-dev:sync-docs` — never routed automatically.)
 
+(Full instruction-file tune-up is user-invoked only: `/meta-dev:revise-agents-md` — audits the whole context surface against the codebase and revises it onto standard in one pass. Can't be auto-invoked; when a user asks to "reorganize / tune up / de-dup my whole AGENTS.md + references against the code," recommend they run it.)
+
 Two diagnostic questions settle most ambiguity:
 - **Does the intended behavior change?** Yes → update. No → improve.
-- **Is the problem inside one artifact's content, or in how content is distributed across files?** Inside → update/improve. Distribution → restructure (skills) / graduation (instruction files).
+- **Is the problem inside one artifact's content, or in how content is distributed across files?** Inside → update/improve. Distribution → restructure (skills) / rule re-scope (instruction files).
 
 Completion criterion: exactly one operation chosen, or an ordered list when several genuinely apply.
 
@@ -68,7 +70,7 @@ How much each operation consults the user — the operations enforce this themse
 - **improve-*** (skill/agent/instructions): hands-free end to end; never consults; reports evidence afterward.
 - **update-*** : consults once, to confirm the requirements diff; everything after runs itself.
 - **create-*** / **scaffold-plugin**: asks during intake only.
-- **restructure-skill**, **setup-instructions**, and instruction-file **graduations**: pause for plan approval — shape and multi-file writes are user decisions.
+- **restructure-skill**, **setup-instructions**, and instruction-file **rule re-scopes**: pause for plan approval — shape and multi-file writes are user decisions.
 - **retire-*** : pauses only on unresolved cross-reference blockers.
 - **review-*** / **validate-plugin**: read-only; never modify anything.
 

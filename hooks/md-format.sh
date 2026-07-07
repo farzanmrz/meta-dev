@@ -2,8 +2,9 @@
 # meta-dev md-format — nudge-only markdown standards check (PostToolUse on
 # Write|Edit|MultiEdit|NotebookEdit). Never blocks: emits a systemMessage
 # listing deterministic violations of standards/core.md so the session
-# self-corrects, and flags an instruction-file constitution outgrowing the
-# ~200-line ladder threshold (standards/instruction-files.md).
+# self-corrects, and flags a surface AGENTS.md/CLAUDE.md growing past ~200
+# lines — a signal to move path-specific detail into .claude/rules/
+# (standards/instruction-files.md).
 set -uo pipefail
 command -v jq >/dev/null 2>&1 || exit 0
 
@@ -42,12 +43,12 @@ BAREFENCE="$(awk '
   END { print n + 0 }' "$FILE")"
 [ "$BAREFENCE" -gt 0 ] && ISSUES="$ISSUES ${BAREFENCE} code fence(s) missing a language tag;"
 
-# Constitution size — the growth-ladder trigger.
+# Surface size — AGENTS.md should stay lean; path-specific detail belongs in rules.
 BASE="$(basename "$FILE")"
 if [ "$BASE" = "AGENTS.md" ] || [ "$BASE" = "CLAUDE.md" ]; then
   LINES="$(wc -l < "$FILE" | tr -d ' ')"
   if [ "$LINES" -gt 200 ]; then
-    ISSUES="$ISSUES constitution is ${LINES} lines (>200) — consider graduating an area per the growth ladder (meta-dev standards/instruction-files.md);"
+    ISSUES="$ISSUES ${BASE} is ${LINES} lines (>200) — keep the surface lean; move path-specific detail into .claude/rules/ (meta-dev standards/instruction-files.md);"
   fi
 fi
 

@@ -1,49 +1,50 @@
 ---
 name: setup-instructions
-description: Bootstrap a project's instruction files from scratch. Use when the user asks to set up CLAUDE.md or AGENTS.md, bootstrap instruction files or project memory, or initialize the constitution for a repo that has none. Not for editing an existing constitution's content (update-instructions) or pruning/tightening one already in place (improve-instructions).
+description: Bootstrap a project's instruction files from scratch — a surface AGENTS.md plus path-scoped .claude/rules/ derived from the installed skills and the actual code. Use when the user asks to set up CLAUDE.md/AGENTS.md, bootstrap instruction files or project memory, or initialize the layout for a repo that has none. Not for editing an existing layout's content (update-instructions), tightening one already in place (improve-instructions), or re-deriving the whole layout of a repo that already has one (revise-agents-md).
 model: sonnet
 ---
 
 # setup-instructions
 
-Bootstrap a repo's instruction files from nothing: gather facts, draft rung 1 of the growth ladder, get plan approval before touching disk, then install and verify. Read `${CLAUDE_SKILL_DIR}/../../standards/core.md` and `${CLAUDE_SKILL_DIR}/../../standards/instruction-files.md` before drafting — the shape, loading mechanics, and section playbook live there and only there.
+Bootstrap a repo's Claude-native instruction layout from nothing: a surface `AGENTS.md` plus path-scoped `.claude/rules/`, derived — like `revise-agents-md` — as a projection of the installed skills and the actual code. Gather facts, derive the skill×path mapping, draft, get plan approval before touching disk, then install and verify. Read `${CLAUDE_SKILL_DIR}/../../standards/core.md` and `${CLAUDE_SKILL_DIR}/../../standards/instruction-files.md` before drafting — the shape, the skill×path derivation, the promotion test, and the section playbook live there and only there.
 
-## Step 1 — Inspect the repo
+## Step 1 — Inspect the repo and the skill set
 
 1. Read manifests (`package.json`, `pyproject.toml`, `Cargo.toml`, etc.) for stack and pinned versions.
 2. Extract runnable commands from package/task-runner scripts, not from memory or convention.
-3. Find environment keys from `.env.example`/config templates and note where setup lives.
-4. List top-level directories to identify the project's mapped areas (one area = one future reference file).
+3. Find environment keys from `.env.example`/config templates.
+4. List top-level directories to identify the project's **path-areas** — one coherent tech surface (routing, auth, the agent…) is one candidate rule.
+5. **Enumerate the installed skills** — project-local (`.claude/skills/`), every installed plugin, and global — the capability set the rules will route to.
 
-Record a source for every fact (which file it came from) — a fact without a source is a guess, and guesses in a constitution rot silently since nothing forces a re-check. Completion criterion: facts gathered for stack, commands, environment, and code map, each with a cited source.
+Record a source for every fact (which file it came from); a fact without a source is a guess, and guesses rot silently. Completion criterion: facts gathered for stack, commands, environment, and path-areas — each with a source — plus the skill inventory.
 
-## Step 2 — Draft rung 1
+## Step 2 — Derive the layout
 
-Follow the AGENTS.md section playbook exactly (order fixed, sections optional) to draft:
+Following `instruction-files.md`, draft:
 
-- `AGENTS.md` — the canon, populated from Step 1's facts only, sections included only where the project actually has the content.
-- `CLAUDE.md` — exactly `@AGENTS.md`, nothing else; this is what makes the constitution load natively at session start on both tools.
-- `.claude/references/<area>.md` skeletons, one per mapped area, each opening with that area's skill pointer (if one exists) before any structure or facts.
+- `AGENTS.md` — the **surface**: identity, stack, commands, environment, a thin code map (names areas, does not point at rules), and always-on working rules. No per-area detail; no commentary about how rules or skills load (the harness owns that); no skill whose description the harness already matches.
+- `CLAUDE.md` — exactly `@AGENTS.md`.
+- `.claude/rules/<area>.md` — one per path-area: a `paths:` filter, the area's skills (derive the skill×path mapping per `instruction-files.md` — **apply** now, **surface** with a trigger condition, **drop** the inapplicable), and the non-code-recoverable info keepers (promotion test). A fresh repo's rules may be thin; that is fine.
 
-Stop at rung 1: no `.claude/rules/`, no nested `CLAUDE.md`. A fresh repo has no graduation signal yet (constitution near 200 lines, a swelling area, repeated misses of pull-only guidance) — rungs 2+ exist to answer a problem this repo does not yet have. Completion criterion: draft constitution and reference skeletons exist in the workspace, rung 1 only.
+No nested `CLAUDE.md` — a fresh repo has no deep, self-contained subtree that warrants its own scoped constitution yet. Completion criterion: draft `AGENTS.md` + `CLAUDE.md` + the rule set exist in the workspace.
 
 ## Step 3 — Plan approval (mandatory, no exceptions)
 
-Present the full draft — constitution text and the reference-file list with what each will contain — to the user before writing anything to the target repo. Setup is the one instruction-file operation that creates many files at once from a blank slate; the user has not yet seen a single line of it, unlike update (editing something they already reviewed once) or improve (quality-only, no new content). Wait for explicit approval or edits before Step 4.
+Present the full draft — the `AGENTS.md` text and each rule (its `paths:`, skills, and info) — to the user before writing anything to the target repo. Setup is the one instruction-file operation that creates many files at once from a blank slate. Wait for explicit approval or edits before Step 4.
 
-Completion criterion: user has seen the complete draft and approved it (or approved it with named changes, which are applied before proceeding).
+Completion criterion: user has seen the complete draft and approved it (or approved with named changes, applied before proceeding).
 
 ## Step 4 — Install
 
-Write the approved `AGENTS.md`, `CLAUDE.md`, and each `.claude/references/<area>.md` to the repo root. Create parent directories as needed. Do not add rung-2 structure even if it was discussed as a "later" item in Step 3 — approval covered the draft shown, not speculative growth.
+Write the approved `AGENTS.md`, `CLAUDE.md`, and each `.claude/rules/<area>.md` to the repo. Create parent directories as needed. Do not add a nested `CLAUDE.md` even if discussed as a "later" item — approval covered the draft shown.
 
 Completion criterion: every approved file exists on disk at its intended path, unchanged from what was approved.
 
 ## Step 5 — Verify
 
-1. Confirm `AGENTS.md` (and any nested constitution — none expected at setup) is ≤200 lines.
-2. Confirm every code-map pointer line in `AGENTS.md` resolves to a reference file that actually exists.
-3. Confirm markdown is clean per core.md's formatting rules (structure matches real hierarchy, backticks on paths/identifiers, no bare prose walls).
-4. Report to the user: what was created (file list), and the specific growth-ladder triggers to watch for (constitution approaching 200 lines, one area's reference swelling, repeated misses of pull-only guidance) so they know when to invoke update-instructions later (its Graduation step executes the move under plan approval).
+1. `CLAUDE.md` is exactly `@AGENTS.md`; `AGENTS.md` is surface-only (no per-area detail, no rules/skills-loading commentary).
+2. Each rule's `paths:` is valid and scopes to where its area's tech actually lives; no fact is stated in two files.
+3. Markdown is clean per `core.md`'s Formatting rules.
+4. Report to the user: what was created (file list), and the **surfaced** future-trigger skills (the "wire this skill when X happens" list) so they know what to add as the project grows.
 
-Completion criterion: all three checks pass and the report — including named future triggers — has been delivered to the user.
+Completion criterion: all checks pass and the report — including the surfaced-skill triggers — has been delivered.

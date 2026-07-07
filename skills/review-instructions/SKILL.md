@@ -1,6 +1,6 @@
 ---
 name: review-instructions
-description: Read-only audit of a project's instruction files (AGENTS.md, CLAUDE.md, .claude/references, .claude/rules) — never edits them. Use to review, check, audit, or diagnose instruction files, verify every documented claim against the actual codebase, find stale or wrong facts, spot cross-file contradictions or bloat, or get a quality report before deciding what to change. Not for applying fixes (update-instructions / improve-instructions) or first-time bootstrap (setup-instructions).
+description: Read-only audit of a project's instruction files (AGENTS.md, CLAUDE.md, .claude/rules) — never edits them. Use to review, check, audit, or diagnose instruction files, verify every documented claim against the actual codebase, find stale or wrong facts, spot cross-file contradictions or bloat, or get a quality report before deciding what to change. Not for applying fixes (update-instructions / improve-instructions) or first-time bootstrap (setup-instructions).
 model: sonnet
 ---
 

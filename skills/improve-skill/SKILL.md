@@ -67,4 +67,4 @@ Completion criterion: the metric measurably improved, no other dimension regress
 
 ## Step 5 — Finish
 
-Bump `metadata.version`, log the delta and evidence in the workspace, and name the next-highest-value pass if one is apparent (or hand shape problems to restructure-skill). Then run the mandatory workspace cleanup (eval-pipeline.md §9): archive the snapshot if the skill isn't git-tracked, keep the log, and `rm -rf` the workspace — leave nothing in the skills tree.
+Bump `metadata.version` if the skill has one (a git-tracked skill needs no version field — its commit history is the changelog), log the delta and evidence in the workspace, and name the next-highest-value pass if one is apparent (or hand shape problems to restructure-skill). Then run the mandatory workspace cleanup (eval-pipeline.md §9): archive the snapshot if the skill isn't git-tracked, keep the log, and `rm -rf` the workspace — leave nothing in the skills tree.

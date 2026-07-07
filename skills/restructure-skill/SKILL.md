@@ -57,4 +57,4 @@ Completion criterion: every new skill passes review, old capabilities demonstrab
 
 ## Step 6 — Finish
 
-Bump versions, log the restructure (what moved where, and why) in the workspace, and route leftovers: orphaned content nobody claimed → retire-skill; descriptions that now under-trigger → improve-skill. Then run the mandatory workspace cleanup (eval-pipeline.md §9): archive each snapshot if untracked, keep the log, and `rm -rf` the workspace.
+Bump versions where the affected skills carry a `metadata.version` (git-tracked skills need none — commits are the changelog), log the restructure (what moved where, and why) in the workspace, and route leftovers: orphaned content nobody claimed → retire-skill; descriptions that now under-trigger → improve-skill. Then run the mandatory workspace cleanup (eval-pipeline.md §9): archive each snapshot if untracked, keep the log, and `rm -rf` the workspace.
